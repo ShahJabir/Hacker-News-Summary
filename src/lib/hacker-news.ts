@@ -2,12 +2,12 @@ import type { FeedEntry } from '@extractus/feed-extractor'
 import { extract } from '@extractus/feed-extractor'
 
 export async function getFeed() {
-  const data = await extract('https://news.ycombinator.com/rss', {
+  const data = await extract('https://feeds.feedburner.com/TheHackersNews', {
     getExtraEntryFields(entryData: any) {
       return {
-        comments: entryData.comments || '',
+        pubDate: entryData.pubDate || '',
       }
     },
   })
-  return data.entries as (FeedEntry & { comments: string })[]
+  return data.entries as (FeedEntry & { pubDate: string })[]
 }
