@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { jsxRenderer } from 'hono/jsx-renderer'
+import { getFeed } from './lib/hacker-news'
 
 const app = new Hono()
 
@@ -20,12 +21,26 @@ app.get(
   })
 )
 
-app.get('/', (c) => {
-  return c.render(<h1>Hello, World!</h1>)
-})
-
-app.get('/error', (_) => {
-    throw new Error("This is a Error");
+app.get('/', async (c) => {
+    const items = await getFeed()
+  return c.render((
+    <>
+    {items?.map((entry) => {
+        return (
+            <details>
+                <summary role="button" class="outline contrast">{entry.title}</summary>
+                <article>
+                    <header>
+                        <a href={entry.link} target="_blank" rel="nofollow noopener">Article</a>
+                        {" | "}
+                        <a href={entry.comments} target="_blank" rel="nofollow noopener">Comments</a>
+                    </header>
+                </article>
+            </details>
+        )
+    })}
+    </>
+  ))
 })
 
 app.notFound((c) => {
