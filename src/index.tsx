@@ -1,5 +1,6 @@
 import type { AppEnv } from './lib/types'
 import { Hono } from 'hono'
+import { raw } from 'hono/html'
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { getArticleandSummary } from './lib/article'
 import { getFeed } from './lib/hacker-news'
@@ -28,7 +29,7 @@ app.get('/', async (c) => {
   return c.render((
     <>
       {await Promise.all(items?.map(async (entry) => {
-        let result: { article: string | null, summary: string | null | undefined } = { article: null, summary: null }
+        let result: { article: string | null | undefined, summary: string | null | undefined } = { article: null, summary: null }
         try {
           result = await getArticleandSummary({
             url: entry.link!,
@@ -52,9 +53,9 @@ app.get('/', async (c) => {
                 ? (
                     <div>
                       <h2>Summary</h2>
-                      {result.summary ? result.summary : <p> No summary available. </p>}
+                      {result.summary ? raw(result.summary) : <p> No summary available. </p>}
                       <h2>Article Content</h2>
-                      {result.article}
+                      {raw(result.article)}
                     </div>
                   )
                 : <h2>Unable to retrieve article.</h2>}

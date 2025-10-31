@@ -1,5 +1,6 @@
 import type { ArticleSummary } from './types'
 import { Readability } from '@mozilla/readability'
+import DOMPurify from 'dompurify'
 import { parseHTML } from 'linkedom'
 
 export async function getArticleandSummary(options: {
@@ -19,8 +20,6 @@ export async function getArticleandSummary(options: {
     } as any)
 
     if (!response || !response.ok) {
-      // Non-OK responses should not crash the renderer. Return nulls so caller can show a friendly message.
-
       console.error(`Failed to fetch article ${options.url} - status: ${response?.status}`)
       return {
         article: null,
@@ -29,9 +28,15 @@ export async function getArticleandSummary(options: {
     }
 
     const html = await response.text()
-    // Avoid logging large HTML blobs in production/dev console. Log a short marker instead.
-
     const { document } = parseHTML(html)
+    Array.from(document.getElementsByTagName('img')).forEach((link) => {
+      link.src = new URL(link.src, options.url).href
+    })
+    Array.from(document.getElementsByTagName('a')).forEach((link) => {
+      link.href = new URL(link.href, options.url).href
+      link.setAttribute('rel', 'nofollow noopener')
+      link.setAttribute('target', '_blank')
+    })
     if (!document) {
       console.error(`parseHTML returned no document for ${options.url}`)
       return {
@@ -49,9 +54,13 @@ export async function getArticleandSummary(options: {
     }
 
     if (article?.content) {
+      const { window } = parseHTML('')
+      const purify = DOMPurify(window)
+      const cleanArticle = purify.sanitize(article.content ?? '')
+      const cleanExcerpt = purify.sanitize(article.excerpt ?? '')
       result = {
-        article: article.content,
-        summary: article.excerpt,
+        article: cleanArticle,
+        summary: cleanExcerpt,
       }
     }
     await options.articlesKV.put(options.url, JSON.stringify(result))
@@ -62,7 +71,6 @@ export async function getArticleandSummary(options: {
     return result
   }
   catch (err) {
-    // Catch any unexpected errors (network, parse, Readability internals) and return safe nulls.
     console.error('Error while fetching/parsing article', options.url, err)
     return {
       article: null,
