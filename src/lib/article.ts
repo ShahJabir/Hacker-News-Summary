@@ -47,13 +47,20 @@ export async function getArticleandSummary(options: {
       }
     }
 
-    const reader = new Readability(document)
-    const article = reader.parse()
+    let reader: Readability | null = null
+    try {
+      reader = new Readability(document)
+    }
+    catch (error) {
+      console.error(`Readability failed for ${options.url} with error: ${error}`)
+    }
 
     result = {
       article: null,
       summary: null,
     }
+
+    const article = reader?.parse()
 
     if (article?.content) {
       const { window } = parseHTML('')
