@@ -1,9 +1,10 @@
+import type { AppEnv } from './lib/types'
 import { Hono } from 'hono'
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { getArticleandSummary } from './lib/article'
 import { getFeed } from './lib/hacker-news'
 
-const app = new Hono()
+const app = new Hono<AppEnv>()
 
 app.get(
   '/*',
@@ -29,7 +30,10 @@ app.get('/', async (c) => {
       {await Promise.all(items?.map(async (entry) => {
         let result: { article: string | null, summary: string | null | undefined } = { article: null, summary: null }
         try {
-          result = await getArticleandSummary(entry.link!)
+          result = await getArticleandSummary({
+            url: entry.link!,
+            articlesKV: c.env.articles,
+          })
         }
         catch (err) {
           // Don't let one failing article crash the whole page render

@@ -11,6 +11,7 @@
   "dependencies": {
     "@extractus/feed-extractor": "^7.1.7",
     "@mozilla/readability": "^0.6.0",
+    "@types/node": "^24.9.2",
     "hono": "^4.10.4",
     "linkedom": "^0.18.12"
   },
