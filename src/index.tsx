@@ -34,6 +34,7 @@ app.get('/', async (c) => {
           result = await getArticleandSummary({
             url: entry.link!,
             articlesKV: c.env.articles,
+            ai: c.env.AI,
           })
         }
         catch (err) {

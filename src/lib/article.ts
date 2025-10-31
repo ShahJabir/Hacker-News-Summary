@@ -2,10 +2,12 @@ import type { ArticleSummary } from './types'
 import { Readability } from '@mozilla/readability'
 import DOMPurify from 'dompurify'
 import { parseHTML } from 'linkedom'
+import summerize from './summerize'
 
 export async function getArticleandSummary(options: {
   url: string
   articlesKV: KVNamespace
+  ai: Ai
 }) {
   try {
     let result = await options.articlesKV.get<ArticleSummary>(options.url, 'json')
@@ -57,10 +59,11 @@ export async function getArticleandSummary(options: {
       const { window } = parseHTML('')
       const purify = DOMPurify(window)
       const cleanArticle = purify.sanitize(article.content ?? '')
-      const cleanExcerpt = purify.sanitize(article.excerpt ?? '')
+      console.warn(`Generating summary for article: ${options.url}`)
+      const summary = await summerize(options.ai, options.url, cleanArticle)
       result = {
         article: cleanArticle,
-        summary: cleanExcerpt,
+        summary,
       }
     }
     await options.articlesKV.put(options.url, JSON.stringify(result))

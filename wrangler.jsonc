@@ -10,7 +10,10 @@
 		{
 			"binding": "articles",
 			"id": "b5907074d47043138246927cde73ccf5",
-			"remote": false
+			"remote": true
 		}
 	],
+    "ai":{
+        "binding": "AI"
+    },
 }
